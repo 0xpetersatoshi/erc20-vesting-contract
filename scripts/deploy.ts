@@ -12,14 +12,39 @@ async function main() {
   // If this script is run directly using `node` you may want to call compile
   // manually to make sure everything is compiled
   // await hre.run('compile');
+  const [deployer] = await ethers.getSigners();
+  const tokenName = "AcademyDAO";
+  const tokenSymbol = "ADT";
+  const tokenSupply = 100_000_000;
+  const teamTokenAllocationPercentage = 0.2;
+  const teamTokenAllocationAmount = tokenSupply * teamTokenAllocationPercentage;
 
-  // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  console.log(`deployer address: ${deployer.address}`);
 
-  await greeter.deployed();
+  // Get the token contract to deploy
+  const Token = await ethers.getContractFactory("Token");
+  const token = await Token.deploy(deployer.address, tokenName, tokenSymbol, tokenSupply);
 
-  console.log("Greeter deployed to:", greeter.address);
+  await token.deployed();
+
+  console.log(`${tokenSymbol} token deployed to contract: ${token.address}`);
+  console.log(`Minted ${tokenSupply} ${tokenSymbol} tokens to DAO address: ${deployer.address}`);
+
+  // Get the vesting schedule contract to deploy
+  const Vesting = await ethers.getContractFactory("VestingSchedule");
+  const vesting = await Vesting.deploy(deployer.address, token.address);
+
+  await vesting.deployed();
+
+  console.log(`VestingSchedule contract deployed to: ${vesting.address}`);
+  console.log(`Owner address: ${deployer.address}`);
+
+  // Transfer team token allocation amount to vesting contract
+  console.log(`Transferring ${teamTokenAllocationAmount} ${tokenSymbol} to vesting contract...`);
+  const amount = ethers.utils.parseUnits(String(teamTokenAllocationAmount), 18);
+  await token.transfer(vesting.address, amount);
+  const vestingContractBalance = await token.balanceOf(vesting.address).toString();
+  console.log(`Vesting contract ${tokenSymbol} balance: ${vestingContractBalance}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
