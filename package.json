@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "author": "0xPeterSatoshi",
-  "description": "Example ERC20 token",
+  "description": "Example ERC20 token and vesting contract",
   "dependencies": {
     "@openzeppelin/contracts": "^4.4.1",
     "hardhat": "^2.8.0"
