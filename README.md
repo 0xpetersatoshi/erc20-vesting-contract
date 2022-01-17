@@ -9,15 +9,15 @@ Clone the repo and run `yarn install`
 Once installed, here is a list of example commands you can run:
 
 ```shell
-yarn hardhat accounts
-yarn hardhat compile
-yarn hardhat clean
-yarn hardhat test
-yarn hardhat node
-yarn hardhat help
+npx hardhat accounts
+npx hardhat compile
+npx hardhat clean
+npx hardhat test
+npx hardhat node
+npx hardhat help
 REPORT_GAS=true yarn hardhat test
-yarn hardhat coverage
-yarn hardhat run scripts/deploy.ts
+npx hardhat coverage
+npx hardhat run scripts/deploy.ts
 TS_NODE_FILES=true yarn ts-node scripts/deploy.ts
 yarn eslint '**/*.{js,ts}'
 yarn eslint '**/*.{js,ts}' --fix
@@ -31,7 +31,69 @@ yarn solhint 'contracts/**/*.sol' --fix
 
 If you want to deploy the contracts to a testnet like ropsten, you will need to first create a `.env` file using the [.env.example](./.env.example) file as a template. You'll need an etherscan API key (if you want to verify and publish the deployed contract to etherscan after deployment). You will also need to create an account with [alchemy](https://alchemy.com), create an app using the testnet you want to work with (ropsten in this case), and then get the API key by clicking on "view key" and copying the http address. Lastly, you'll need a mnemonic seed phrase for the dev wallet you want to use for testing.
 
-## Deployment
+## Running Locally
+
+First, compile contracts:
+
+```shell
+npx hardhat compile
+```
+
+Next, start local node:
+
+```shell
+npx hardhat node
+```
+
+> *Note*: Using node v17.x will throw an error. Use node v16.x or older.
+
+Finally, to deploy contracts:
+
+```shell
+npx hardhat run scripts/deploy.ts --network localhost
+```
+
+## Interacting with contracts running on localhost
+
+To interact with your deployed contracts via the console, run:
+
+```shell
+npx hardhat console --network localhost
+```
+
+Then, to create the token objects, use this format:
+
+```javascript
+// Instantiate token object and attach to contract address
+const Token = await ethers.getContractFactory("<CONTRACT_NAME>");
+const token = Token.attach("<CONTRACT ADDRESS>");
+
+// Get owner account address and other addresses
+const [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+```
+
+Example transactions you can run from the console:
+
+```javascript
+// Get the owner balance and send your first transaction
+const ownerBalance = await token.balanceOf(owner.address);
+
+// Use .toString() method to avoid integer overflow errors
+console.log(ownerBalance.toString());
+
+// Send some 5000 tokens
+const amount = ethers.utils.parseUnits(String(5000), 18);
+const tx = await token.transfer(addr1.address, amount);
+
+// View transaction info
+console.log(tx)
+
+// Verify balance of addr1
+const addr1Balance = await token.balanceOf(addr1.address);
+addr1Balance.toString();
+```
+
+## Chain Deployment
 
 Before you can deploy the contracts, you'll need some testnet ETH. If you are using ropsten you can use one of the following faucets:
 
@@ -44,7 +106,7 @@ Before you can deploy the contracts, you'll need some testnet ETH. If you are us
 Finally, to deploy the contracts simply run:
 
 ```shell
-yarn hardhat run scripts/deploy.ts --network ropsten
+npx hardhat run scripts/deploy.ts --network ropsten
 ```
 
 When you run this command, three main things will happen:
@@ -64,7 +126,7 @@ If you want to execute contract methods from etherscan, you'll need to verify an
 Copy the deployment address and paste it in to replace `DEPLOYED_CONTRACT_ADDRESS` in this command:
 
 ```shell
-yarn hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS "contract arg 1" "contract arg 2"
+npx hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS "contract arg 1" "contract arg 2"
 ```
 
 ## Interacting with deployed contracts
